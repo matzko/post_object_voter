@@ -12,6 +12,26 @@ Version: 1.0
 if ( version_compare( PHP_VERSION, '5.2.0') >= 0 ) {
 
 	require_once dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'core.php';
+
+	function activate_post_voter_plugin()
+	{
+		if ( class_exists( 'WP_Post_Object_Voter_Model' ) ) {
+			$model = new WP_Post_Object_Voter_Model;
+			if ( ! $model->does_voter_table_exist() ) {
+				$model->create_voter_table();
+			}
+		}
+	}
+
+	/**
+	 * @todo Make this function do useful stuff
+	 */
+	function uninstall_post_voter_plugin()
+	{
+	}
+
+	register_activation_hook( __FILE__, 'activate_post_voter_plugin' );
+	register_uninstall_hook( __FILE__, 'uninstall_post_voter_plugin' );
 	
 } else {
 	
