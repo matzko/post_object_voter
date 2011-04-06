@@ -1,6 +1,6 @@
 <?php
 
-if ( ! class_exists( '' ) ) {
+if ( ! class_exists( 'WP_Post_Object_Voter' ) ) {
 
 class WP_Post_Object_Voter
 {
@@ -66,6 +66,56 @@ class WP_Post_Object_Voter_Model
 		global $wpdb;
 
 		return (bool) ( $wpdb->get_var("SHOW TABLES LIKE '{$this->_vote_table}'") == $this->_vote_table );
+	}
+}
+
+class WP_Post_Object_Voter_View
+{
+	public $link_template = '<a href="%1$s" class="%2$s" id="%3$s">%4$s</a>';
+
+	public function __construct()
+	{
+	}
+
+	public function get_thumbs_down_link( $object_id = 0 )
+	{
+		$object_id = (int) $object_id;
+
+		$url = add_query_arg( array(
+			'thumbs-down' => $object_id,
+			'thumbs-nonce' => wp_create_nonce( 'thumbs-vote-nonce' ),
+		) );
+
+		return sprintf(
+			$this->link_template,
+			$url,
+			'post-object-vote thumbs-down',
+			'thumbs-down-' . $object_id,
+			__( 'Thumbs Down', 'post-voter' )
+		);
+	}
+	
+	public function get_thumbs_up_link( $object_id = 0 )
+	{
+		$object_id = (int) $object_id;
+
+		$url = add_query_arg( array(
+			'thumbs-up' => $object_id,
+			'thumbs-nonce' => wp_create_nonce( 'thumbs-vote-nonce' ),
+		) );
+
+		return sprintf(
+			$this->link_template,
+			$url,
+			'post-object-vote thumbs-up',
+			'thumbs-up-' . $object_id,
+			__( 'Thumbs Up', 'post-voter' )
+		);
+	}
+
+	public function print_voting_section( $object_id = 0 )
+	{
+
 	}
 }
 
@@ -163,9 +213,9 @@ class WP_Post_Object_Vote
 		$object_id = (int) $object_id;
 
 		if ( false === $this->_get_existing_vote( $this->blog_id, $object_id, $this->user_id ) ) {
-			$this->_add_vote( $this->user_id, $object_id, $this->user_id, -1  )
+			$this->_add_vote( $this->user_id, $object_id, $this->user_id, -1  );
 		} else {
-			$this->_update_vote( $this->user_id, $object_id, $this->user_id, -1  )
+			$this->_update_vote( $this->user_id, $object_id, $this->user_id, -1  );
 		}
 	}
 
@@ -175,9 +225,9 @@ class WP_Post_Object_Vote
 		$object_id = (int) $object_id;
 
 		if ( false === $this->_get_existing_vote( $this->blog_id, $object_id, $this->user_id ) ) {
-			$this->_add_vote( $this->user_id, $object_id, $this->user_id, 1  )
+			$this->_add_vote( $this->user_id, $object_id, $this->user_id, 1  );
 		} else {
-			$this->_update_vote( $this->user_id, $object_id, $this->user_id, 1  )
+			$this->_update_vote( $this->user_id, $object_id, $this->user_id, 1  );
 		}
 	}
 }
