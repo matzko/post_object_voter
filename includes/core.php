@@ -21,6 +21,11 @@ class WP_Post_Object_Voter_Model
 		$this->_vote_table = $wpdb->base_prefix . $this->_table_suffix;
 	}
 
+	public function get_voter_table()
+	{
+		return $this->_vote_table;
+	}
+
 	protected function _get_create_table_query()
 	{
 		global $wpdb;
@@ -66,7 +71,115 @@ class WP_Post_Object_Voter_Model
 
 class WP_Post_Object_Vote
 {
-	// public function 
+	public $blog_id = 0;
+	public $user_id = 0;
+
+	public function __construct()
+	{
+		global $blog_id;
+		$this->blog_id = (int) $blog_id;
+		$this->user_id = (int) get_current_user_id();
+		$this->_model = new WP_Post_Object_Voter_Model;
+	}
+
+	/**
+	 * 1 for thumbs-up; -1 for thumbs-down; false for no vote;
+	 */
+	protected function _get_existing_vote( $blog_id = 0, $object_id = 0, $user_id = 0 )
+	{
+		global $wpdb;
+
+		$blog_id = (int) $blog_id;
+		$object_id = (int) $object_id;
+		$user_id = (int) $user_id;
+
+		$table = $this->_model->get_voter_table();
+
+		$results = $wpdb->get_results( "
+			SELECT vote_id, vote 
+				FROM {$table}
+				WHERE 
+					blog_id = {$blog_id} AND
+					object_id = {$blog_id} AND
+					user_id = {$user_id}
+				LIMIT 1
+			"
+		);
+		
+		if ( is_array( $results ) ) {
+			$result = array_shift( $results );
+			if ( ! empty( $result->vote_id ) ) {
+				return $result->vote;
+			}
+		}
+
+		return false;
+	}
+
+	protected function _add_vote( $blog_id = 0, $object_id = 0, $user_id = 0, $vote = 0  )
+	{
+		global $wpdb;
+
+		$blog_id = (int) $blog_id;
+		$object_id = (int) $object_id;
+		$user_id = (int) $user_id;
+		$vote = (int) $vote;
+
+		$table = $this->_model->get_voter_table();
+
+		return $wpdb->query(
+			"INSERT INTO {$table}
+				( blog_id, object_id, user_id, vote ) 
+				VALUES
+				( {$blog_id}, {$object_id}, {$user_id}, {$vote} )
+			"
+		);
+	}
+
+	protected function _update_vote( $blog_id = 0, $object_id = 0, $user_id = 0, $vote = 0  )
+	{
+		global $wpdb;
+
+		$blog_id = (int) $blog_id;
+		$object_id = (int) $object_id;
+		$user_id = (int) $user_id;
+		$vote = (int) $vote;
+
+		$table = $this->_model->get_voter_table();
+		
+		return $wpdb->query(
+			"UPDATE {$table} 
+				SET vote_id = {$vote_id} 
+				WHERE
+					blog_id = {$blog_id} AND
+					object_id = {$object_id} AND
+					user_id = {$user_id}
+			"
+		);
+	}
+
+	public function vote_thumbs_down( $object_id = 0 )
+	{
+		$object_id = (int) $object_id;
+
+		if ( false === $this->_get_existing_vote( $this->blog_id, $object_id, $this->user_id ) ) {
+			$this->_add_vote( $this->user_id, $object_id, $this->user_id, -1  )
+		} else {
+			$this->_update_vote( $this->user_id, $object_id, $this->user_id, -1  )
+		}
+	}
+
+
+	public function vote_thumbs_up( $object_id = 0 )
+	{
+		$object_id = (int) $object_id;
+
+		if ( false === $this->_get_existing_vote( $this->blog_id, $object_id, $this->user_id ) ) {
+			$this->_add_vote( $this->user_id, $object_id, $this->user_id, 1  )
+		} else {
+			$this->_update_vote( $this->user_id, $object_id, $this->user_id, 1  )
+		}
+	}
 }
 
 function load_post_object_voter()
