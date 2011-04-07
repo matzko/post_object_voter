@@ -267,13 +267,13 @@ class WP_Post_Object_Vote
 		);
 	}
 
-	public function get_vote_total( $blog_id = 0, $object_id = 0, $user_id = 0 )
+	public function get_vote_total( $object_id = 0 )
 	{
 		global $wpdb;
 
-		$blog_id = (int) $blog_id;
+		$blog_id = (int) $this->blog_id;
 		$object_id = (int) $object_id;
-		$user_id = (int) $user_id;
+		$user_id = (int) $this->user_id;
 
 		$table = $this->_model->get_voter_table();
 
