@@ -113,9 +113,34 @@ class WP_Post_Object_Voter_View
 		);
 	}
 
+	public function get_total_score( $object_id = 0 )
+	{
+		$object_id = (int) $object_id;
+		$vote = new WP_Post_Object_Vote;
+		$score = $vote->get_vote_total( $object_id );
+
+		return sprintf(
+			__( 'Vote total: %s', 'post-voter' ),
+			$score
+		);
+	}
+
 	public function print_voting_section( $object_id = 0 )
 	{
-
+		$object_id = (int) $object_id;
+		?>
+		<div class="voting-section">
+			<span class="thumbs-up-wrap">
+				<?php echo $this->get_thumbs_up_link( $object_id ); ?>
+			</span>
+			<span class="thumbs-down-wrap">
+				<?php echo $this->get_thumbs_down_link( $object_id ); ?>
+			</span>
+			<span class="voting-total-wrap">
+				<?php echo $this->get_total_score( $object_id ); ?>
+			</span>
+		</div><!-- .voting-section -->
+		<?php
 	}
 }
 
@@ -206,6 +231,28 @@ class WP_Post_Object_Vote
 					user_id = {$user_id}
 			"
 		);
+	}
+
+	public function get_vote_total( $blog_id = 0, $object_id = 0, $user_id = 0 )
+	{
+		global $wpdb;
+
+		$blog_id = (int) $blog_id;
+		$object_id = (int) $object_id;
+		$user_id = (int) $user_id;
+
+		$table = $this->_model->get_voter_table();
+
+		return $wpdb->get_var(
+			"SELECT SUM( vote )
+				FROM {$table}
+				WHERE 
+					blog_id = {$blog_id} AND
+					object_id = {$object_id} AND
+					user_id = {$user_id}
+			"
+		);
+
 	}
 
 	public function vote_thumbs_down( $object_id = 0 )
