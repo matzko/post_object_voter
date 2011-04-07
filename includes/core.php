@@ -6,7 +6,31 @@ class WP_Post_Object_Voter
 {
 	public function __construct()
 	{
-		
+		add_action( 'template_redirect', array( $this, 'listen_for_votes' ) );		
+	}
+
+	public function listen_for_votes()
+	{
+		if ( 
+			! empty( $_GET['make-object-vote'] ) &&
+			wp_verify_nonce( $_GET['thumbs-nonce'], 'thumbs-vote-nonce' ) &&
+			is_user_logged_in()
+		) {
+			$vote = new WP_Post_Object_Vote;
+			if ( ! empty( $_GET['thumbs-down'] ) ) {
+				$vote->vote_thumbs_down( $_GET['thumbs-down'] );
+			} elseif ( ! empty( $_GET['thumbs-up'] ) ) {
+				$vote->vote_thumbs_up( $_GET['thumbs-up'] );
+			}
+
+			wp_redirect( remove_query_arg( array(
+				'make-object-vote',
+				'thumbs-down',
+				'thumbs-nonce',
+				'thumbs-up',
+			) ) );
+			exit;
+		}
 	}
 }
 
@@ -82,9 +106,14 @@ class WP_Post_Object_Voter_View
 		$object_id = (int) $object_id;
 
 		$url = add_query_arg( array(
+			'make-object-vote' => 1,
 			'thumbs-down' => $object_id,
 			'thumbs-nonce' => wp_create_nonce( 'thumbs-vote-nonce' ),
-		) );
+			),
+			remove_query_arg( array(
+				'thumbs-up',
+			) )
+		);
 
 		return sprintf(
 			$this->link_template,
@@ -100,9 +129,14 @@ class WP_Post_Object_Voter_View
 		$object_id = (int) $object_id;
 
 		$url = add_query_arg( array(
+			'make-object-vote' => 1,
 			'thumbs-up' => $object_id,
 			'thumbs-nonce' => wp_create_nonce( 'thumbs-vote-nonce' ),
-		) );
+			),
+			remove_query_arg( array(
+				'thumbs-down',
+			) )
+		);
 
 		return sprintf(
 			$this->link_template,
@@ -243,7 +277,7 @@ class WP_Post_Object_Vote
 
 		$table = $this->_model->get_voter_table();
 
-		return $wpdb->get_var(
+		return (int) $wpdb->get_var(
 			"SELECT SUM( vote )
 				FROM {$table}
 				WHERE 
