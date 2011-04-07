@@ -67,7 +67,7 @@ class WP_Post_Object_Voter_Model
 			blog_id BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
 			object_id BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
 			user_id BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
-			vote TINYINT UNSIGNED NOT NULL DEFAULT 0,
+			vote TINYINT SIGNED NOT NULL DEFAULT 0,
 			PRIMARY KEY (vote_id),
 			KEY blog_id (blog_id),
 			KEY object_id (object_id),
@@ -258,7 +258,7 @@ class WP_Post_Object_Vote
 		
 		return $wpdb->query(
 			"UPDATE {$table} 
-				SET vote_id = {$vote_id} 
+				SET vote = {$vote} 
 				WHERE
 					blog_id = {$blog_id} AND
 					object_id = {$object_id} AND
