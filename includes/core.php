@@ -209,7 +209,7 @@ class WP_Post_Object_Vote
 				FROM {$table}
 				WHERE 
 					blog_id = {$blog_id} AND
-					object_id = {$blog_id} AND
+					object_id = {$object_id} AND
 					user_id = {$user_id}
 				LIMIT 1
 			"
